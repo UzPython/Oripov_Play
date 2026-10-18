@@ -1,129 +1,912 @@
-<!doctype html>
-<html lang="uz">
-  <head>
+<!DOCTYPE html>
+<html lang="uz" class="dark scroll-smooth">
+<head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <meta name="theme-color" content="#100e0e">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#0a0a0c">
     <meta name="description" content="Oripov Play — horror o‘yinlar, jonli efirlar va unutilmas qo‘rqinchli lahzalar. YouTube va Telegram’da kuzating.">
-    <title>Oripov Play — Qo‘rqinchni birga yengamiz</title>
+    <title>Oripov Play — Qo‘rqinchni Birga Yengamiz</title>
+    
+    <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700;800;900&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-    <script src="script.js" defer></script>
-  </head>
-  <body>
-    <div class="noise" aria-hidden="true"></div>
-    <header class="site-header">
-      <a class="brand" href="#home" aria-label="Oripov Play bosh sahifa">
-        <span class="brand-mark" aria-hidden="true">O<span>/</span>P</span>
-        <span class="brand-name">ORIPOV<span>PLAY</span></span>
-      </a>
-      <button class="menu-toggle" type="button" aria-expanded="false" aria-controls="site-nav" aria-label="Menyuni ochish">
-        <span></span><span></span>
-      </button>
-      <nav class="site-nav" id="site-nav" aria-label="Asosiy navigatsiya">
-        <a href="#about">Strimer haqida</a>
-        <a href="#streams">Kontent</a>
-        <a href="#community">Hamjamiyat</a>
-        <a class="nav-cta" href="https://www.youtube.com/@oripov_play" target="_blank" rel="noreferrer">YouTube’ga o‘tish <span aria-hidden="true">↗</span></a>
-      </nav>
+    <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,800;0,900;1,700&family=Manrope:wght@300;400;500;600;700;800&family=Creepster&display=swap" rel="stylesheet">
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    
+    <!-- Tone.js for web audio horror SFX -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tone/14.8.49/Tone.js"></script>
+
+    <!-- Tailwind Config -->
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    colors: {
+                        horror: {
+                            black: '#08070b',
+                            card: '#110e17',
+                            red: '#e50914',
+                            crimson: '#8b0000',
+                            blood: '#ff1e27',
+                            accent: '#ff2a3b',
+                            darkBorder: '#271f33'
+                        }
+                    },
+                    fontFamily: {
+                        heading: ['"Barlow Condensed"', 'sans-serif'],
+                        sans: ['Manrope', 'sans-serif'],
+                        spooky: ['Creepster', 'cursive']
+                    },
+                    animation: {
+                        'pulse-glow': 'pulseGlow 2s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'flicker': 'flicker 3s infinite',
+                        'glitch': 'glitch 1s infinite alternate',
+                        'float': 'float 4s ease-in-out infinite'
+                    },
+                    keyframes: {
+                        pulseGlow: {
+                            '0%, 100%': { opacity: 1, boxShadow: '0 0 15px rgba(229, 9, 20, 0.6)' },
+                            '50%': { opacity: 0.5, boxShadow: '0 0 5px rgba(229, 9, 20, 0.2)' }
+                        },
+                        flicker: {
+                            '0%, 100%': { opacity: 1 },
+                            '41.99%': { opacity: 1 },
+                            '42%': { opacity: 0.2 },
+                            '43%': { opacity: 0.8 },
+                            '43.01%': { opacity: 0.1 },
+                            '47.99%': { opacity: 0.1 },
+                            '48%': { opacity: 1 },
+                            '80%': { opacity: 0.9 },
+                            '80.1%': { opacity: 0.3 },
+                            '82%': { opacity: 1 }
+                        },
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0px)' },
+                            '50%': { transform: 'translateY(-10px)' }
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Custom Horror Effects CSS */
+        body {
+            background-color: #060508;
+            color: #e2e8f0;
+            overflow-x: hidden;
+        }
+
+        /* CRT Glitch Noise Overlay */
+        .scanlines {
+            background: linear-gradient(
+                rgba(18, 16, 16, 0) 50%, 
+                rgba(0, 0, 0, 0.35) 50%
+            ), linear-gradient(
+                90deg,
+                rgba(255, 0, 0, 0.03),
+                rgba(0, 255, 0, 0.01),
+                rgba(0, 0, 255, 0.03)
+            );
+            background-size: 100% 4px, 6px 100%;
+            pointer-events: none;
+        }
+
+        /* Fog Animation */
+        .fog-container {
+            position: fixed;
+            width: 100%;
+            height: 100%;
+            top: 0;
+            left: 0;
+            opacity: 0.12;
+            pointer-events: none;
+            z-index: 1;
+            background: radial-gradient(circle at 50% 50%, rgba(229,9,20,0.15), transparent 70%);
+        }
+
+        /* Red Blood Glow Gradient */
+        .blood-gradient {
+            background: radial-gradient(circle at center, rgba(229, 9, 20, 0.25) 0%, rgba(8, 7, 11, 0.95) 75%);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #08070b;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #2d1318;
+            border-radius: 4px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #e50914;
+        }
+
+        /* Custom Jump Scare Vignette overlay */
+        #scare-overlay {
+            transition: opacity 0.1s ease-out;
+            pointer-events: none;
+        }
+
+        /* Text Glitch Effect */
+        .glitch-text {
+            position: relative;
+            display: inline-block;
+        }
+        .glitch-text::before,
+        .glitch-text::after {
+            content: attr(data-text);
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            clip: rect(0, 0, 0, 0);
+        }
+        .glitch-text:hover::before {
+            left: -2px;
+            text-shadow: 2px 0 #ff0055;
+            clip: rect(24px, 550px, 90px, 0);
+            animation: glitch-anim 1.5s infinite linear alternate-reverse;
+        }
+        .glitch-text:hover::after {
+            left: 2px;
+            text-shadow: -2px 0 #00e5ff;
+            clip: rect(85px, 550px, 140px, 0);
+            animation: glitch-anim2 1s infinite linear alternate-reverse;
+        }
+
+        @keyframes glitch-anim {
+            0% { clip: rect(10px, 9999px, 30px, 0); }
+            50% { clip: rect(40px, 9999px, 70px, 0); }
+            100% { clip: rect(70px, 9999px, 90px, 0); }
+        }
+        @keyframes glitch-anim2 {
+            0% { clip: rect(25px, 9999px, 50px, 0); }
+            50% { clip: rect(60px, 9999px, 10px, 0); }
+            100% { clip: rect(80px, 9999px, 30px, 0); }
+        }
+    </style>
+</head>
+<body class="font-sans antialiased selection:bg-horror-red selection:text-white relative min-h-screen">
+
+    <!-- CRT Overlay & Fog -->
+    <div class="scanlines fixed inset-0 z-50"></div>
+    <div class="fog-container" id="fog"></div>
+
+    <!-- Jump Scare Flash Overlay -->
+    <div id="scare-overlay" class="fixed inset-0 bg-red-600/30 z-[100] opacity-0 mix-blend-hard-light"></div>
+
+    <!-- Audio Atmosphere Toggle Float Button -->
+    <div class="fixed bottom-6 right-6 z-40 flex flex-col items-end gap-2">
+        <button id="sfx-toggle-btn" onclick="toggleAtmosphereAudio()" class="group flex items-center gap-3 bg-horror-card/90 border border-horror-red/40 hover:border-horror-red text-white px-4 py-3 rounded-full shadow-2xl backdrop-blur-md transition-all duration-300 hover:scale-105">
+            <span class="relative flex h-3 w-3">
+              <span id="audio-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-horror-red opacity-75 hidden"></span>
+              <span id="audio-dot" class="relative inline-flex rounded-full h-3 w-3 bg-gray-500"></span>
+            </span>
+            <span id="audio-status-text" class="text-xs font-bold tracking-widest uppercase font-heading">Qo‘rqinchli Ovoz: OFF</span>
+            <svg id="speaker-icon" class="w-5 h-5 text-gray-400 group-hover:text-horror-red transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.536 8.464a5 5 0 010 7.072m2.828-9.9a9 9 0 010 12.728M5.586 15H4a1 1 0 01-1-1v-4a1 1 0 011-1h1.586l4.707-4.707C10.923 3.663 12 4.109 12 5v14c0 .891-1.077 1.337-1.707.707L5.586 15z"></path>
+            </svg>
+        </button>
+    </div>
+
+    <!-- Header Navbar -->
+    <header class="fixed top-0 left-0 w-full z-40 transition-all duration-300 border-b border-white/5 backdrop-blur-xl bg-horror-black/80" id="main-header">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-20 flex items-center justify-between">
+            <!-- Brand Logo -->
+            <a href="#home" class="flex items-center gap-3 group">
+                <div class="relative">
+                    <img src="https://yt3.googleusercontent.com/lbXuRPra7bygjRMsVwmYehPg7WxzRLFc8r2Frc0gWr8wSboOthqTC82QKciWAiIC_uVfK--2cA=s160-c-k-c0x00ffffff-no-rj" 
+                         alt="Oripov Play Avatar" 
+                         class="w-11 h-11 rounded-full border-2 border-horror-red/60 group-hover:border-horror-red group-hover:scale-105 transition-all duration-300 shadow-[0_0_15px_rgba(229,9,20,0.4)]">
+                    <span class="absolute bottom-0 right-0 w-3.5 h-3.5 bg-horror-red rounded-full border-2 border-horror-black animate-pulse"></span>
+                </div>
+                <div class="flex flex-col">
+                    <span class="font-heading font-black text-2xl tracking-wider text-white group-hover:text-horror-red transition-colors">
+                        ORIPOV<span class="text-horror-red">PLAY</span>
+                    </span>
+                    <span class="text-[10px] tracking-widest text-gray-400 font-semibold uppercase -mt-1">Horror Channel</span>
+                </div>
+            </a>
+
+            <!-- Desktop Navigation -->
+            <nav class="hidden md:flex items-center gap-8 text-sm uppercase tracking-widest font-heading font-semibold">
+                <a href="#about" class="hover:text-horror-red transition-colors py-2 relative group">
+                    Strimer haqida
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-horror-red group-hover:w-full transition-all duration-300"></span>
+                </a>
+                <a href="#streams" class="hover:text-horror-red transition-colors py-2 relative group">
+                    Kontent & Efirlar
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-horror-red group-hover:w-full transition-all duration-300"></span>
+                </a>
+                <a href="#games" class="hover:text-horror-red transition-colors py-2 relative group">
+                    O‘ynalgan O‘yinlar
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-horror-red group-hover:w-full transition-all duration-300"></span>
+                </a>
+                <a href="#community" class="hover:text-horror-red transition-colors py-2 relative group">
+                    Hamjamiyat
+                    <span class="absolute bottom-0 left-0 w-0 h-0.5 bg-horror-red group-hover:w-full transition-all duration-300"></span>
+                </a>
+            </nav>
+
+            <!-- Action Button -->
+            <div class="hidden md:flex items-center gap-4">
+                <a href="https://www.youtube.com/@oripov_play" target="_blank" rel="noopener noreferrer" 
+                   class="relative inline-flex items-center gap-2 bg-horror-red hover:bg-red-700 text-white font-heading font-bold text-base px-6 py-2.5 rounded-lg shadow-[0_0_20px_rgba(229,9,20,0.5)] hover:shadow-[0_0_30px_rgba(229,9,20,0.8)] transition-all duration-300 transform hover:-translate-y-0.5">
+                    <svg class="w-5 h-5 fill-current" viewBox="0 0 24 24">
+                        <path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/>
+                    </svg>
+                    <span>YouTube’ga o‘tish</span>
+                </a>
+            </div>
+
+            <!-- Mobile Menu Toggle Button -->
+            <button id="mobile-menu-btn" onclick="toggleMobileMenu()" class="md:hidden text-gray-300 hover:text-white p-2 focus:outline-none" aria-label="Menyuni ochish">
+                <svg id="menu-icon-open" class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16"></path>
+                </svg>
+                <svg id="menu-icon-close" class="w-7 h-7 hidden text-horror-red" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path>
+                </svg>
+            </button>
+        </div>
+
+        <!-- Mobile Nav Menu Dropdown -->
+        <div id="mobile-menu" class="hidden md:hidden bg-horror-card/95 border-b border-horror-red/20 backdrop-blur-2xl px-6 py-6 transition-all duration-300 space-y-4">
+            <a href="#about" onclick="toggleMobileMenu()" class="block text-lg font-heading font-semibold uppercase hover:text-horror-red py-1">Strimer haqida</a>
+            <a href="#streams" onclick="toggleMobileMenu()" class="block text-lg font-heading font-semibold uppercase hover:text-horror-red py-1">Kontent & Efirlar</a>
+            <a href="#games" onclick="toggleMobileMenu()" class="block text-lg font-heading font-semibold uppercase hover:text-horror-red py-1">O‘ynalgan O‘yinlar</a>
+            <a href="#community" onclick="toggleMobileMenu()" class="block text-lg font-heading font-semibold uppercase hover:text-horror-red py-1">Hamjamiyat</a>
+            <div class="pt-4 border-t border-white/10">
+                <a href="https://www.youtube.com/@oripov_play" target="_blank" rel="noopener noreferrer" 
+                   class="flex items-center justify-center gap-2 w-full bg-horror-red text-white font-heading font-bold py-3 rounded-lg text-center shadow-lg">
+                    YouTube Kanaliga O‘tish ↗
+                </a>
+            </div>
+        </div>
     </header>
 
-    <main>
-      <section class="hero" id="home">
-        <div class="hero-image" aria-hidden="true"></div>
-        <div class="hero-vignette" aria-hidden="true"></div>
-        <div class="hero-content">
-          <p class="eyebrow"><span class="eyebrow-line"></span> HORROR • GAMING • LIVE</p>
-          <h1>QO‘RQINCH<br>BU YERDA <span>BOSHLANADI</span></h1>
-          <p class="hero-copy">Chiroqlarni o‘chir. Ovozni baland qil. Oripov bilan eng qo‘rqinchli o‘yinlarga sho‘ng‘i.</p>
-          <div class="hero-actions">
-            <a class="button button-primary" href="https://www.youtube.com/@oripov_play" target="_blank" rel="noreferrer">
-              <span class="play-icon" aria-hidden="true">▶</span> YouTube kanal
-            </a>
-            <a class="button button-quiet" href="#about">Ko‘proq bilish <span aria-hidden="true">↓</span></a>
-          </div>
-        </div>
-        <div class="hero-aside" aria-label="Kanal haqida">
-          <span class="aside-label">BU SHUNCHAKI O‘YIN EMAS</span>
-          <span class="aside-number">01<span>/</span>03</span>
-          <span class="aside-rule"></span>
-          <span class="aside-caption">Har bir eshik ortida<br>yangi qo‘rquv.</span>
-        </div>
-        <div class="scroll-cue"><span></span> PASTGA TUSHING</div>
-        <div class="hero-index">UZB&nbsp; / &nbsp;HORROR STREAMER</div>
-      </section>
-
-      <section class="intro section-wrap" id="about">
-        <div class="section-kicker"><span>01</span> / STRIMER HAQIDA</div>
-        <div class="intro-layout">
-          <div>
-            <h2>YURAK<br>KERAK <span>BO‘LADI.</span></h2>
-          </div>
-          <div class="intro-text">
-            <p class="intro-lead">Tanishamiz — <strong>Oripov Play</strong>.</p>
-            <p>Bu yerda horror o‘yinlar, kutilmagan sakrashlar va chat bilan birga o‘tilgan unutilmas lahzalar. Har bir efir — yangi hikoya, har bir qo‘rquv — birga kulish uchun sabab.</p>
-            <a class="text-link" href="https://www.youtube.com/@oripov_play" target="_blank" rel="noreferrer">Kanalga qo‘shiling <span aria-hidden="true">↗</span></a>
-          </div>
-        </div>
-        <div class="stats-row">
-          <div class="stat"><span class="stat-number">H<span>O</span>RROR</span><span class="stat-label">ASOSIY JANR</span></div>
-          <div class="stat"><span class="stat-number">LIVE<span>.</span></span><span class="stat-label">BIRGA O‘YNAYMIZ</span></div>
-          <div class="stat"><span class="stat-number">UZ<span>+</span></span><span class="stat-label">O‘ZBEKCHA KONTENT</span></div>
-          <div class="stat stat-note"><span>Qo‘rqdingmi?<br>Demak, yaxshi efir bo‘ldi.</span><span class="note-mark" aria-hidden="true">✳</span></div>
-        </div>
-      </section>
-
-      <section class="content-section" id="streams">
-        <div class="section-wrap">
-          <div class="content-heading">
-            <div>
-              <div class="section-kicker"><span>02</span> / KONTENT</div>
-              <h2>QORONG‘ILIKKA<br><span>MARHAMAT.</span></h2>
+    <!-- MAIN CONTENT -->
+    <main class="relative pt-20">
+        <!-- HERO SECTION -->
+        <section id="home" class="relative min-h-[92vh] flex items-center justify-center overflow-hidden border-b border-white/5 py-16 lg:py-0">
+            <!-- Background Atmospheric Visuals -->
+            <div class="absolute inset-0 bg-cover bg-center bg-no-repeat filter brightness-[0.35] contrast-125 scale-105 transition-transform duration-1000" 
+                 style="background-image: url('https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1920&auto=format&fit=crop');">
             </div>
-            <p>Quloqchinlarni taqing.<br>Qolgani — Oripovdan.</p>
-          </div>
-          <a class="feature-card" href="https://www.youtube.com/@oripov_play" target="_blank" rel="noreferrer" aria-label="Oripov Play YouTube kanalini ochish">
-            <div class="feature-photo" aria-hidden="true"></div>
-            <div class="feature-overlay"></div>
-            <div class="feature-top"><span class="feature-tag"><span class="tag-dot"></span> HORROR SESSIYA</span><span class="feature-arrow" aria-hidden="true">↗</span></div>
-            <div class="feature-bottom">
-              <span class="feature-small">KEYINGI QO‘RQUVINGIZ SHU YERDA</span>
-              <span class="feature-title">TUNGI<br>SARGUZASHT</span>
-              <span class="feature-watch"><span class="play-icon" aria-hidden="true">▶</span> EFIRLARNI KO‘RISH</span>
+            
+            <div class="absolute inset-0 blood-gradient"></div>
+            
+            <!-- Floating Horror Particles / Decorative Lines -->
+            <div class="absolute inset-0 pointer-events-none overflow-hidden">
+                <div class="absolute top-1/4 left-10 w-72 h-72 bg-horror-red/10 rounded-full filter blur-3xl animate-pulse"></div>
+                <div class="absolute bottom-1/4 right-10 w-96 h-96 bg-red-900/20 rounded-full filter blur-3xl animate-pulse" style="animation-delay: 1.5s;"></div>
             </div>
-          </a>
-          <div class="content-foot">
-            <span>YANGI VIDEOLAR VA EFIRLAR</span>
-            <span class="foot-line"></span>
-            <a href="https://www.youtube.com/@oripov_play" target="_blank" rel="noreferrer">YouTube kanalida <span aria-hidden="true">↗</span></a>
-          </div>
-        </div>
-      </section>
 
-      <section class="community section-wrap" id="community">
-        <div class="community-art" aria-hidden="true"><span>JOIN<br>US</span><i>✳</i></div>
-        <div class="community-copy">
-          <div class="section-kicker"><span>03</span> / HAMJAMIYAT</div>
-          <h2>YOLG‘IZ<br><span>QO‘RQMA.</span></h2>
-          <p>Yangiliklar, efir xabarlari va tomoshabinlar bilan suhbat — barchasi Telegram’da. Bizga qo‘shil, qo‘rqinchli tunlar qiziqroq bo‘ladi.</p>
-          <a class="button button-primary" href="https://t.me/Oripov_Play" target="_blank" rel="noreferrer">Telegram’ga qo‘shilish <span aria-hidden="true">↗</span></a>
-        </div>
-      </section>
+            <div class="relative z-10 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                
+                <!-- Left Main Content -->
+                <div class="lg:col-span-8 text-center lg:text-left">
+                    <div class="inline-flex items-center gap-3 px-3.5 py-1.5 rounded-full bg-horror-red/20 border border-horror-red/40 mb-6 backdrop-blur-md">
+                        <span class="w-2.5 h-2.5 rounded-full bg-horror-red animate-ping"></span>
+                        <span class="text-xs font-heading font-bold tracking-widest text-horror-red uppercase">HORROR • GAMING • LIVE STREAM</span>
+                    </div>
+
+                    <h1 class="font-heading font-black text-5xl sm:text-7xl lg:text-8xl tracking-tight leading-[0.9] text-white uppercase mb-6">
+                        QO‘RQINCH<br>
+                        <span class="text-transparent bg-clip-text bg-gradient-to-r from-horror-red via-red-500 to-amber-500 glitch-text" data-text="BU YERDA BOSHLANADI">
+                            BU YERDA BOSHLANADI
+                        </span>
+                    </h1>
+
+                    <p class="text-lg sm:text-xl text-gray-300 max-w-2xl font-light leading-relaxed mb-8 mx-auto lg:mx-0">
+                        Chiroqlarni o‘chir. Quloqchinlarni taq. Oripov Play bilan eng daxshatli va unutilmas horror o‘yinlar olamiga sho‘ng‘i!
+                    </p>
+
+                    <!-- Call To Action Buttons -->
+                    <div class="flex flex-wrap items-center justify-center lg:justify-start gap-4">
+                        <a href="https://www.youtube.com/@oripov_play" target="_blank" rel="noopener noreferrer" 
+                           onmouseenter="playHoverSfx()"
+                           class="group relative inline-flex items-center gap-3 bg-horror-red hover:bg-red-600 text-white font-heading font-extrabold text-xl px-8 py-4 rounded-xl shadow-[0_0_30px_rgba(229,9,20,0.6)] hover:shadow-[0_0_45px_rgba(229,9,20,0.9)] transition-all duration-300 transform hover:-translate-y-1">
+                            <span class="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center group-hover:scale-110 transition-transform">
+                                ▶
+                            </span>
+                            <span>YOUTUBE KANALGA O‘TISH</span>
+                        </a>
+
+                        <button onclick="triggerJumpscarePreview()" 
+                                class="inline-flex items-center gap-2 bg-horror-card/80 hover:bg-horror-darkBorder border border-horror-red/30 hover:border-horror-red text-gray-200 hover:text-white font-heading font-bold text-lg px-6 py-4 rounded-xl backdrop-blur-md transition-all duration-300">
+                            <svg class="w-5 h-5 text-horror-red animate-bounce" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z"></path>
+                            </svg>
+                            <span>Qo‘rquvni His Et ⚡</span>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Right Aside Card -->
+                <div class="lg:col-span-4 flex justify-center">
+                    <div class="w-full max-w-sm bg-horror-card/90 border border-horror-red/30 rounded-2xl p-6 shadow-2xl backdrop-blur-xl relative group hover:border-horror-red/70 transition-all duration-500">
+                        <div class="absolute -top-3 -right-3 bg-horror-red text-white font-heading font-extrabold text-xs px-3 py-1 rounded-full uppercase shadow-lg tracking-wider">
+                            Top Streamer
+                        </div>
+                        
+                        <div class="flex items-center gap-4 mb-4 pb-4 border-b border-white/10">
+                            <img src="https://yt3.googleusercontent.com/lbXuRPra7bygjRMsVwmYehPg7WxzRLFc8r2Frc0gWr8wSboOthqTC82QKciWAiIC_uVfK--2cA=s160-c-k-c0x00ffffff-no-rj" alt="Oripov Play" class="w-16 h-16 rounded-full border-2 border-horror-red">
+                            <div>
+                                <h3 class="font-heading font-extrabold text-xl text-white">ORIPOV PLAY</h3>
+                                <p class="text-xs text-horror-red font-semibold tracking-wider">● LIVE HORROR ATMOSPHERE</p>
+                            </div>
+                        </div>
+
+                        <p class="text-sm text-gray-300 italic mb-4 leading-relaxed">
+                            "Bu shunchaki o‘yin emas. Har bir eshik ortida yangi qo‘rquv va hayajon kutmoqda!"
+                        </p>
+
+                        <div class="space-y-3 text-xs font-mono text-gray-400 bg-black/40 p-3 rounded-lg border border-white/5">
+                            <div class="flex justify-between">
+                                <span>Janr:</span>
+                                <span class="text-white font-bold">Horror, Survival, Indie</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Platforma:</span>
+                                <span class="text-white font-bold">YouTube Live</span>
+                            </div>
+                            <div class="flex justify-between">
+                                <span>Til:</span>
+                                <span class="text-white font-bold">O‘zbekcha (UZB)</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- Scroll Cue Indicator -->
+            <div class="absolute bottom-4 left-1/2 transform -translate-x-1/2 hidden md:flex flex-col items-center gap-1 opacity-70 hover:opacity-100 transition-opacity">
+                <span class="text-[11px] font-heading font-bold tracking-widest text-gray-400 uppercase">PASTGA TUSHING</span>
+                <div class="w-5 h-8 border-2 border-horror-red/60 rounded-full flex justify-center p-1">
+                    <div class="w-1 h-2 bg-horror-red rounded-full animate-bounce"></div>
+                </div>
+            </div>
+        </section>
+
+        <!-- ABOUT SECTION -->
+        <section id="about" class="py-24 relative z-10 border-b border-white/5 bg-horror-black/60">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="flex items-center gap-3 mb-4">
+                    <span class="text-horror-red font-heading font-extrabold text-xl">01 /</span>
+                    <h2 class="text-xs font-heading font-bold tracking-widest text-gray-400 uppercase">STRIMER HAQIDA</h2>
+                </div>
+
+                <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-center">
+                    
+                    <!-- Left Bio Card -->
+                    <div class="lg:col-span-5 relative">
+                        <div class="relative rounded-3xl overflow-hidden border border-horror-red/40 group shadow-[0_0_40px_rgba(0,0,0,0.8)]">
+                            <img src="https://images.unsplash.com/photo-1511512578047-dfb367046420?q=80&w=800&auto=format&fit=crop" 
+                                 alt="Horror Gaming setup" 
+                                 class="w-full h-[420px] object-cover filter contrast-125 group-hover:scale-105 transition-transform duration-700">
+                            
+                            <div class="absolute inset-0 bg-gradient-to-t from-horror-black via-horror-black/40 to-transparent"></div>
+
+                            <div class="absolute bottom-6 left-6 right-6 p-4 rounded-2xl bg-horror-card/90 backdrop-blur-md border border-horror-red/30">
+                                <div class="flex items-center gap-4">
+                                    <img src="https://yt3.googleusercontent.com/lbXuRPra7bygjRMsVwmYehPg7WxzRLFc8r2Frc0gWr8wSboOthqTC82QKciWAiIC_uVfK--2cA=s160-c-k-c0x00ffffff-no-rj" alt="Avatar" class="w-12 h-12 rounded-full border border-horror-red">
+                                    <div>
+                                        <h3 class="font-heading font-black text-xl text-white">ORIPOV PLAY</h3>
+                                        <p class="text-xs text-horror-red flex items-center gap-1.5 font-semibold">
+                                            <span class="w-2 h-2 rounded-full bg-horror-red animate-pulse"></span>
+                                            O‘zbekistondagi Horror Kontent
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Right Bio Text & Interactive Cards -->
+                    <div class="lg:col-span-7 space-y-6">
+                        <h2 class="font-heading font-black text-4xl sm:text-6xl uppercase tracking-tight leading-none text-white">
+                            YURAK KERAK <span class="text-horror-red">BO‘LADI.</span>
+                        </h2>
+
+                        <p class="text-lg text-gray-300 leading-relaxed font-light">
+                            Tanishamiz — <strong class="text-white font-semibold">Oripov Play</strong>. Bu yerda siz oddiy o‘yin emas, balki haqiqiy psixologik daxshat, kutilmagan screamerlar va eng samimiy chat muloqotini topasiz.
+                        </p>
+
+                        <p class="text-gray-400 leading-relaxed">
+                            Har bir efir — yangi qo‘rqinchli sarguzasht. Kanalda eng so‘nggi chiqqan dunyo horror o‘yinlari va mashhur indie loyihalar to‘liq o‘zbek tilidagi qiziqarli sharhlar bilan taqdim etiladi.
+                        </p>
+
+                        <!-- Sound Clips Interactive Player -->
+                        <div class="pt-4 border-t border-white/10">
+                            <h4 class="font-heading font-bold text-sm tracking-wider uppercase text-horror-red mb-3">
+                                🎧 Atmosferani His Qiling (Audio Namuna):
+                            </h4>
+                            <div class="grid grid-cols-2 sm:grid-cols-3 gap-3">
+                                <button onclick="playHorrorSfx('creak')" class="p-3 rounded-xl bg-horror-card border border-white/10 hover:border-horror-red text-left text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-2">
+                                    <span>🚪</span> Chirqillagan Eshik
+                                </button>
+                                <button onclick="playHorrorSfx('whisper')" class="p-3 rounded-xl bg-horror-card border border-white/10 hover:border-horror-red text-left text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-2">
+                                    <span>👻</span> Sirli Shovqin
+                                </button>
+                                <button onclick="playHorrorSfx('heartbeat')" class="p-3 rounded-xl bg-horror-card border border-white/10 hover:border-horror-red text-left text-xs font-semibold text-gray-300 hover:text-white transition-all flex items-center gap-2">
+                                    <span>💓</span> Yurak Urishi
+                                </button>
+                            </div>
+                        </div>
+
+                    </div>
+
+                </div>
+
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mt-16">
+                    <div class="p-6 rounded-2xl bg-horror-card/50 border border-white/5 hover:border-horror-red/40 transition-all text-center group">
+                        <span class="block font-heading font-black text-4xl lg:text-5xl text-horror-red group-hover:scale-110 transition-transform">HORROR</span>
+                        <span class="text-xs font-heading font-bold uppercase tracking-widest text-gray-400 mt-2 block">ASOSIY JANR</span>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-horror-card/50 border border-white/5 hover:border-horror-red/40 transition-all text-center group">
+                        <span class="block font-heading font-black text-4xl lg:text-5xl text-white group-hover:scale-110 transition-transform">LIVE STREAM</span>
+                        <span class="text-xs font-heading font-bold uppercase tracking-widest text-gray-400 mt-2 block">BIRGA O‘YNAYMIZ</span>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-horror-card/50 border border-white/5 hover:border-horror-red/40 transition-all text-center group">
+                        <span class="block font-heading font-black text-4xl lg:text-5xl text-horror-red group-hover:scale-110 transition-transform">UZB+</span>
+                        <span class="text-xs font-heading font-bold uppercase tracking-widest text-gray-400 mt-2 block">O‘ZBEKCHA KONTENT</span>
+                    </div>
+
+                    <div class="p-6 rounded-2xl bg-horror-card/50 border border-white/5 hover:border-horror-red/40 transition-all text-center group">
+                        <span class="block font-heading font-black text-3xl lg:text-4xl text-amber-500 group-hover:scale-110 transition-transform">100%</span>
+                        <span class="text-xs font-heading font-bold uppercase tracking-widest text-gray-400 mt-2 block">ADRENALIN VA EMOTSIYA</span>
+                    </div>
+                </div>
+
+            </div>
+        </section>
+
+        <!-- CONTENT & STREAMS SECTION -->
+        <section id="streams" class="py-24 relative z-10 border-b border-white/5">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-6">
+                    <div>
+                        <div class="flex items-center gap-3 mb-2">
+                            <span class="text-horror-red font-heading font-extrabold text-xl">02 /</span>
+                            <h2 class="text-xs font-heading font-bold tracking-widest text-gray-400 uppercase">KONTENT VA VIDEOLAR</h2>
+                        </div>
+                        <h2 class="font-heading font-black text-4xl sm:text-6xl uppercase tracking-tight text-white">
+                            QORONG‘ILIKKA <span class="text-horror-red">MARHAMAT.</span>
+                        </h2>
+                    </div>
+                    <p class="text-gray-400 max-w-sm text-sm">
+                        Quloqchinlarni taqing. Chiroqlarni o‘chiring. Eng sara efirlar va lavhalarni tomosha qiling.
+                    </p>
+                </div>
+
+                <!-- Main Featured Stream Highlight Card -->
+                <div class="relative rounded-3xl overflow-hidden border border-horror-red/40 group mb-12 shadow-[0_0_50px_rgba(229,9,20,0.2)]">
+                    <div class="aspect-video sm:aspect-[21/9] w-full relative overflow-hidden bg-gray-900">
+                        <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=1600&auto=format&fit=crop" 
+                             alt="Featured Horror Stream" 
+                             class="w-full h-full object-cover filter contrast-125 group-hover:scale-105 transition-transform duration-700">
+                        <div class="absolute inset-0 bg-gradient-to-t from-horror-black via-horror-black/60 to-transparent"></div>
+                    </div>
+
+                    <div class="absolute inset-0 p-6 sm:p-10 flex flex-col justify-between">
+                        <div class="flex justify-between items-start">
+                            <span class="px-4 py-1.5 rounded-full bg-horror-red text-white font-heading font-bold text-xs uppercase tracking-wider shadow-lg flex items-center gap-2">
+                                <span class="w-2 h-2 rounded-full bg-white animate-ping"></span> HORROR SESSIYA
+                            </span>
+                            <span class="text-white/60 font-mono text-xs">UZB STREAM</span>
+                        </div>
+
+                        <div>
+                            <span class="text-horror-red font-heading font-bold text-sm tracking-widest uppercase block mb-1">
+                                KEYINGI QO‘RQUVINGIZ SHU YERDA
+                            </span>
+                            <h3 class="font-heading font-black text-3xl sm:text-5xl text-white uppercase tracking-tight mb-4">
+                                TUNGI SARGUZASHTLAR VA SHOK LAOHALARI
+                            </h3>
+                            <button onclick="openVideoModal('https://www.youtube.com/embed/live_stream?channel=UC_oripov_play')" 
+                                    class="inline-flex items-center gap-3 bg-horror-red hover:bg-red-700 text-white font-heading font-bold text-base px-6 py-3 rounded-xl shadow-lg transition-all transform hover:scale-105">
+                                <span>▶ EFIRNI KO‘RISH</span>
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Grid of Video Clips / Horror Highlights -->
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                    
+                    <!-- Card 1 -->
+                    <div class="bg-horror-card rounded-2xl border border-white/10 overflow-hidden hover:border-horror-red/50 transition-all duration-300 group flex flex-col justify-between">
+                        <div class="relative overflow-hidden aspect-video">
+                            <img src="https://images.unsplash.com/photo-1518709268805-4e9042af9f23?q=80&w=600&auto=format&fit=crop" alt="Silent Hill style game" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
+                            <span class="absolute bottom-3 right-3 bg-black/80 text-xs px-2 py-1 rounded font-mono text-white">LIVE</span>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="font-heading font-bold text-xl text-white uppercase group-hover:text-horror-red transition-colors mb-2">
+                                Eng Qo‘rqinchli Indie Horrorlar
+                            </h4>
+                            <p class="text-xs text-gray-400 line-clamp-2">
+                                Kutilmagan syuzetchilar va qorong'u tunnel labyrintlary.
+                            </p>
+                        </div>
+                        <div class="px-5 pb-5 pt-0">
+                            <a href="https://www.youtube.com/@oripov_play" target="_blank" class="text-xs font-heading font-bold text-horror-red hover:underline flex items-center gap-1">
+                                YOUTUBE’DA KO‘RISH ↗
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Card 2 -->
+                    <div class="bg-horror-card rounded-2xl border border-white/10 overflow-hidden hover:border-horror-red/50 transition-all duration-300 group flex flex-col justify-between">
+                        <div class="relative overflow-hidden aspect-video">
+                            <img src="https://images.unsplash.com/photo-1509198397868-475647b2a1e5?q=80&w=600&auto=format&fit=crop" alt="Outlast style gameplay" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
+                            <span class="absolute bottom-3 right-3 bg-black/80 text-xs px-2 py-1 rounded font-mono text-white">HIGHLIGHTS</span>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="font-heading font-bold text-xl text-white uppercase group-hover:text-horror-red transition-colors mb-2">
+                                Kutilmagan Screamers & Reactions
+                            </h4>
+                            <p class="text-xs text-gray-400 line-clamp-2">
+                                Oripov Play va chatning eng kulgili va shok holatidagi reaksiyalari.
+                            </p>
+                        </div>
+                        <div class="px-5 pb-5 pt-0">
+                            <a href="https://www.youtube.com/@oripov_play" target="_blank" class="text-xs font-heading font-bold text-horror-red hover:underline flex items-center gap-1">
+                                YOUTUBE’DA KO‘RISH ↗
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Card 3 -->
+                    <div class="bg-horror-card rounded-2xl border border-white/10 overflow-hidden hover:border-horror-red/50 transition-all duration-300 group flex flex-col justify-between">
+                        <div class="relative overflow-hidden aspect-video">
+                            <img src="https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=600&auto=format&fit=crop" alt="Survival horror gameplay" class="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500">
+                            <div class="absolute inset-0 bg-black/40 group-hover:bg-black/20 transition-colors"></div>
+                            <span class="absolute bottom-3 right-3 bg-black/80 text-xs px-2 py-1 rounded font-mono text-white">TOP</span>
+                        </div>
+                        <div class="p-5">
+                            <h4 class="font-heading font-bold text-xl text-white uppercase group-hover:text-horror-red transition-colors mb-2">
+                                Tungi Efirlar To‘plami
+                            </h4>
+                            <p class="text-xs text-gray-400 line-clamp-2">
+                                Birga o'ynalgan uzun jonli stream yozuvlari va to'liq o'yin o'tishlar.
+                            </p>
+                        </div>
+                        <div class="px-5 pb-5 pt-0">
+                            <a href="https://www.youtube.com/@oripov_play" target="_blank" class="text-xs font-heading font-bold text-horror-red hover:underline flex items-center gap-1">
+                                YOUTUBE’DA KO‘RISH ↗
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
+
+        <!-- GAMES SECTION -->
+        <section id="games" class="py-24 relative z-10 border-b border-white/5 bg-horror-black/80">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                <div class="flex items-center gap-3 mb-2">
+                    <span class="text-horror-red font-heading font-extrabold text-xl">03 /</span>
+                    <h2 class="text-xs font-heading font-bold tracking-widest text-gray-400 uppercase">KANALDA O‘YNALGAN O‘YINLAR</h2>
+                </div>
+                <h2 class="font-heading font-black text-4xl sm:text-6xl uppercase tracking-tight text-white mb-12">
+                    ENG DAXSHATLI <span class="text-horror-red">LOYIHALAR</span>
+                </h2>
+
+                <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
+                    <!-- Game Item 1 -->
+                    <div class="bg-horror-card p-4 rounded-xl border border-white/10 text-center hover:border-horror-red transition-all group">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-horror-red/20 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            🩸
+                        </div>
+                        <h4 class="font-heading font-bold text-sm text-white uppercase">Outlast Series</h4>
+                        <span class="text-[10px] text-gray-400">Psychological</span>
+                    </div>
+
+                    <!-- Game Item 2 -->
+                    <div class="bg-horror-card p-4 rounded-xl border border-white/10 text-center hover:border-horror-red transition-all group">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-horror-red/20 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            🏚️
+                        </div>
+                        <h4 class="font-heading font-bold text-sm text-white uppercase">Resident Evil</h4>
+                        <span class="text-[10px] text-gray-400">Survival Horror</span>
+                    </div>
+
+                    <!-- Game Item 3 -->
+                    <div class="bg-horror-card p-4 rounded-xl border border-white/10 text-center hover:border-horror-red transition-all group">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-horror-red/20 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            📹
+                        </div>
+                        <h4 class="font-heading font-bold text-sm text-white uppercase">Phasmophobia</h4>
+                        <span class="text-[10px] text-gray-400">Co-Op Ghost</span>
+                    </div>
+
+                    <!-- Game Item 4 -->
+                    <div class="bg-horror-card p-4 rounded-xl border border-white/10 text-center hover:border-horror-red transition-all group">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-horror-red/20 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            🔪
+                        </div>
+                        <h4 class="font-heading font-bold text-sm text-white uppercase">Dead by Daylight</h4>
+                        <span class="text-[10px] text-gray-400">Multiplayer</span>
+                    </div>
+
+                    <!-- Game Item 5 -->
+                    <div class="bg-horror-card p-4 rounded-xl border border-white/10 text-center hover:border-horror-red transition-all group">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-horror-red/20 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            👾
+                        </div>
+                        <h4 class="font-heading font-bold text-sm text-white uppercase">Indie Screamers</h4>
+                        <span class="text-[10px] text-gray-400">Short Horrors</span>
+                    </div>
+
+                    <!-- Game Item 6 -->
+                    <div class="bg-horror-card p-4 rounded-xl border border-white/10 text-center hover:border-horror-red transition-all group">
+                        <div class="w-12 h-12 mx-auto mb-3 bg-horror-red/20 rounded-full flex items-center justify-center text-2xl group-hover:scale-110 transition-transform">
+                            👀
+                        </div>
+                        <h4 class="font-heading font-bold text-sm text-white uppercase">Fears to Fathom</h4>
+                        <span class="text-[10px] text-gray-400">Episodic Horror</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- COMMUNITY SECTION -->
+        <section id="community" class="py-24 relative z-10 overflow-hidden">
+            <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+                
+                <div class="bg-gradient-to-r from-horror-card via-horror-black to-horror-card border border-horror-red/40 rounded-3xl p-8 sm:p-14 relative overflow-hidden shadow-[0_0_60px_rgba(229,9,20,0.2)]">
+                    
+                    <!-- Decorative Background Text -->
+                    <span class="absolute -right-10 -bottom-10 font-spooky text-9xl text-horror-red/5 select-none pointer-events-none">
+                        JOIN US
+                    </span>
+
+                    <div class="max-w-2xl relative z-10 space-y-6">
+                        <div class="flex items-center gap-3">
+                            <span class="text-horror-red font-heading font-extrabold text-xl">04 /</span>
+                            <h2 class="text-xs font-heading font-bold tracking-widest text-gray-400 uppercase">HAMJAMIYAT</h2>
+                        </div>
+
+                        <h2 class="font-heading font-black text-4xl sm:text-6xl uppercase tracking-tight text-white leading-none">
+                            YOLG‘IZ <span class="text-horror-red">QO‘RQMA.</span>
+                        </h2>
+
+                        <p class="text-gray-300 text-lg font-light leading-relaxed">
+                            Yangiliklar, efir e'lonlari, muxlislar bilan muloqot va qiziqarli memlar — barchasi bizning rasmiy Telegram kanalimizda! Qo‘shiling, birgalikda tunlar qiziqroq bo‘ladi.
+                        </p>
+
+                        <div class="pt-4 flex flex-wrap gap-4">
+                            <a href="https://t.me/Oripov_Play" target="_blank" rel="noopener noreferrer" 
+                               class="inline-flex items-center gap-3 bg-[#229ED9] hover:bg-[#1d8cb0] text-white font-heading font-extrabold text-xl px-8 py-4 rounded-xl shadow-[0_0_25px_rgba(34,158,217,0.5)] transition-all transform hover:-translate-y-1">
+                                <svg class="w-6 h-6 fill-current" viewBox="0 0 24 24">
+                                    <path d="M12 0C5.37 0 0 5.37 0 12s5.37 12 12 12 12-5.37 12-12S18.63 0 12 0zm5.562 8.161c-.18 1.897-.962 6.502-1.359 8.627-.168.9-.5 1.201-.82 1.23-.697.064-1.226-.461-1.901-.903-1.056-.692-1.653-1.123-2.678-1.799-1.185-.781-.417-1.21.258-1.911.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.139-5.062 3.345-.479.329-.913.489-1.302.481-.428-.008-1.252-.241-1.865-.44-.752-.244-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.831-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635.099-.002.321.023.465.141.119.098.152.228.166.319.016.104.022.257.012.391z"/>
+                                </svg>
+                                <span>TELEGRAM’GA QO‘SHILISH</span>
+                            </a>
+                        </div>
+                    </div>
+
+                </div>
+
+            </div>
+        </section>
     </main>
 
-    <footer class="site-footer">
-      <a class="brand footer-brand" href="#home" aria-label="Sahifa boshiga">
-        <span class="brand-mark" aria-hidden="true">O<span>/</span>P</span>
-        <span class="brand-name">ORIPOV<span>PLAY</span></span>
-      </a>
-      <span class="footer-motto">QO‘RQINCHNI BIRGA YENGAMIZ.</span>
-      <div class="footer-links">
-        <a href="https://www.youtube.com/@oripov_play" target="_blank" rel="noreferrer">YOUTUBE ↗</a>
-        <a href="https://t.me/Oripov_Play" target="_blank" rel="noreferrer">TELEGRAM ↗</a>
-      </div>
-      <span class="copyright">© <span id="year">2026</span> ORIPOV PLAY</span>
+    <!-- FOOTER -->
+    <footer class="bg-horror-black border-t border-white/10 pt-16 pb-12 relative z-10">
+        <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div class="flex flex-col md:flex-row items-center justify-between gap-8 pb-12 border-b border-white/10">
+                
+                <a href="#home" class="flex items-center gap-3">
+                    <img src="https://yt3.googleusercontent.com/lbXuRPra7bygjRMsVwmYehPg7WxzRLFc8r2Frc0gWr8wSboOthqTC82QKciWAiIC_uVfK--2cA=s160-c-k-c0x00ffffff-no-rj" alt="Logo" class="w-10 h-10 rounded-full border border-horror-red">
+                    <span class="font-heading font-black text-2xl text-white tracking-wider">
+                        ORIPOV<span class="text-horror-red">PLAY</span>
+                    </span>
+                </a>
+
+                <p class="text-sm font-heading tracking-widest text-gray-400 uppercase">
+                    QO‘RQINCHNI BIRGA YENGAMIZ.
+                </p>
+
+                <div class="flex items-center gap-6 font-heading font-bold text-sm tracking-wider">
+                    <a href="https://www.youtube.com/@oripov_play" target="_blank" class="hover:text-horror-red transition-colors">YOUTUBE ↗</a>
+                    <a href="https://t.me/Oripov_Play" target="_blank" class="hover:text-horror-red transition-colors">TELEGRAM ↗</a>
+                </div>
+
+            </div>
+
+            <div class="pt-8 text-center sm:flex sm:justify-between sm:text-left text-xs text-gray-500">
+                <p>© <span id="year">2026</span> ORIPOV PLAY. Barcha huquqlar himoyalangan.</p>
+                <p class="mt-2 sm:mt-0">Design & Interactive Experience enhanced for YouTube Gaming</p>
+            </div>
+        </div>
     </footer>
-  </body>
+
+    <!-- Video Player Modal -->
+    <div id="video-modal" class="fixed inset-0 bg-black/90 z-50 hidden items-center justify-center p-4 backdrop-blur-md">
+        <div class="relative w-full max-w-4xl bg-horror-card border border-horror-red rounded-2xl overflow-hidden shadow-2xl">
+            <button onclick="closeVideoModal()" class="absolute top-4 right-4 z-10 text-white bg-horror-red hover:bg-red-700 w-10 h-10 rounded-full flex items-center justify-center font-bold">
+                ✕
+            </button>
+            <div class="aspect-video w-full">
+                <iframe id="modal-iframe" class="w-full h-full" src="" title="YouTube Video" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- JAVASCRIPT LOGIC -->
+    <script>
+        // Set dynamic current year in footer
+        document.getElementById('year').textContent = new Date().getFullYear();
+
+        // Audio state
+        let isAudioEnabled = false;
+        let ambientSynth = null;
+
+        // Toggle Mobile Navigation
+        function toggleMobileMenu() {
+            const menu = document.getElementById('mobile-menu');
+            const openIcon = document.getElementById('menu-icon-open');
+            const closeIcon = document.getElementById('menu-icon-close');
+            
+            if (menu.classList.contains('hidden')) {
+                menu.classList.remove('hidden');
+                openIcon.classList.add('hidden');
+                closeIcon.classList.remove('hidden');
+            } else {
+                menu.classList.add('hidden');
+                openIcon.classList.remove('hidden');
+                closeIcon.classList.add('hidden');
+            }
+        }
+
+        // Tone.js Horror Sound Generators
+        function toggleAtmosphereAudio() {
+            if (!isAudioEnabled) {
+                Tone.start();
+                isAudioEnabled = true;
+                
+                // Update UI
+                document.getElementById('audio-ping').classList.remove('hidden');
+                document.getElementById('audio-dot').classList.remove('bg-gray-500');
+                document.getElementById('audio-dot').classList.add('bg-horror-red');
+                document.getElementById('audio-status-text').textContent = "Qo‘rqinchli Ovoz: ON";
+
+                // Start ambient dark drone generator
+                ambientSynth = new Tone.PolySynth(Tone.Synth, {
+                    oscillator: { type: "sawtooth" },
+                    envelope: { attack: 3, decay: 1, sustain: 0.8, release: 4 }
+                }).toDestination();
+                ambientSynth.volume.value = -24;
+
+                // Play low dark horror chord drone
+                ambientSynth.triggerAttack(["C1", "F#1", "G1"]);
+
+            } else {
+                isAudioEnabled = false;
+                if (ambientSynth) {
+                    ambientSynth.releaseAll();
+                    ambientSynth.dispose();
+                }
+                
+                // Update UI
+                document.getElementById('audio-ping').classList.add('hidden');
+                document.getElementById('audio-dot').classList.remove('bg-horror-red');
+                document.getElementById('audio-dot').classList.add('bg-gray-500');
+                document.getElementById('audio-status-text').textContent = "Qo‘rqinchli Ovoz: OFF";
+            }
+        }
+
+        // Play Hover Sfx
+        function playHoverSfx() {
+            if (!isAudioEnabled) return;
+            const synth = new Tone.Synth({
+                oscillator: { type: 'sine' },
+                envelope: { attack: 0.01, decay: 0.2, sustain: 0, release: 0.2 }
+            }).toDestination();
+            synth.volume.value = -18;
+            synth.triggerAttackRelease("E2", "8n");
+        }
+
+        // Custom Sound Effect Library using Tone.js
+        function playHorrorSfx(type) {
+            Tone.start();
+            if (type === 'creak') {
+                const noise = new Tone.NoiseSynth({
+                    noise: { type: 'brown' },
+                    envelope: { attack: 0.2, decay: 0.8, sustain: 0 }
+                }).toDestination();
+                noise.volume.value = -10;
+                noise.triggerAttackRelease("0.8s");
+            } else if (type === 'whisper') {
+                const synth = new Tone.MetalSynth({
+                    frequency: 150,
+                    envelope: { attack: 0.1, decay: 1.2, release: 0.5 },
+                    harmonicity: 5.1,
+                    modulationIndex: 16
+                }).toDestination();
+                synth.volume.value = -16;
+                synth.triggerAttackRelease("D3", "1s");
+            } else if (type === 'heartbeat') {
+                const mem = new Tone.MembraneSynth().toDestination();
+                mem.volume.value = -6;
+                mem.triggerAttackRelease("C1", "8n");
+                setTimeout(() => {
+                    mem.triggerAttackRelease("C1", "8n");
+                }, 250);
+            }
+        }
+
+        // Interactive Jump Scare Preview Effect
+        function triggerJumpscarePreview() {
+            Tone.start();
+            
+            // Red flash overlay animation
+            const overlay = document.getElementById('scare-overlay');
+            overlay.style.opacity = '1';
+            
+            // Loud screech horror sound effect
+            const scareSynth = new Tone.MetalSynth({
+                harmonicity: 12,
+                resonance: 800,
+                modulationIndex: 20,
+                envelope: { attack: 0.01, decay: 0.4, release: 0.2 }
+            }).toDestination();
+            scareSynth.volume.value = -2;
+            scareSynth.triggerAttackRelease("F#4", "0.4s");
+
+            setTimeout(() => {
+                overlay.style.opacity = '0';
+            }, 300);
+        }
+
+        // Video Modal Controls
+        function openVideoModal(url) {
+            const modal = document.getElementById('video-modal');
+            const iframe = document.getElementById('modal-iframe');
+            iframe.src = url;
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeVideoModal() {
+            const modal = document.getElementById('video-modal');
+            const iframe = document.getElementById('modal-iframe');
+            iframe.src = '';
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        // Sticky Header shadow on scroll
+        window.addEventListener('scroll', () => {
+            const header = document.getElementById('main-header');
+            if (window.scrollY > 50) {
+                header.classList.add('shadow-[0_10px_30px_rgba(0,0,0,0.8)]');
+            } else {
+                header.classList.remove('shadow-[0_10px_30px_rgba(0,0,0,0.8)]');
+            }
+        });
+    </script>
+</body>
 </html>
